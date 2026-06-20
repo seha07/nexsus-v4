@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus - Kullanıcı Profili</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
+        .nexus-card { background: #0b0f19; border: 1px solid #1e293b; }
+    </style>
 </head>
 <body>
 
@@ -16,7 +19,6 @@
 
     <div class="p-6 max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- SOL ALAN: KİMLİK KARTI VE ÇARK -->
         <div class="space-y-6">
             <div class="nexus-card rounded-2xl p-6 border-l-4 border-blue-500 shadow-xl">
                 <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider">🔒 GÜVENLİ KİMLİK</p>
@@ -28,7 +30,6 @@
                 </div>
             </div>
 
-            <!-- 7 İHTİMALLİ GELİŞMİŞ ÇARK MODÜLÜ -->
             <div class="nexus-card rounded-2xl p-6 text-center border-t-4 border-indigo-500">
                 <h4 class="text-white font-black text-xs uppercase tracking-wider mb-2">🎡 7 İHTİMALLİ ŞANS ÇARKINI ÇEVİR</h4>
                 <p class="text-[10px] text-gray-500 mb-4">(Ödül Havuzu: 100 ile 1000 Coin Arası Rasgele 7 Dilim)</p>
@@ -37,12 +38,10 @@
             </div>
         </div>
 
-        <!-- SAĞ ALAN: GEÇMİŞ BAHİS LOGLARI -->
         <div class="md:col-span-2 nexus-card rounded-2xl p-6 shadow-xl">
             <h3 class="text-gray-200 text-sm font-black tracking-wider uppercase mb-3">🕒 GEÇMİŞ BAHİS HAREKETLERİNİZ (BET LOGS)</h3>
             <div id="bet-history-box" class="space-y-2 max-h-96 overflow-y-auto pr-1 font-mono text-[11px] text-gray-400 divide-y divide-gray-900">
-                <!-- Canlı bahis hareketleri listelenecek -->
-            </div>
+                </div>
         </div>
 
     </div>
@@ -51,23 +50,23 @@
         const session = localStorage.getItem('nexus_session');
         if(!session) window.location.href = 'index.html';
 
-        let users = JSON.parse(localStorage.getItem('nexus_users'));
+        let users = JSON.parse(localStorage.getItem('nexus_users')) || [];
         let curr = users.find(u => u.username === session);
         
-        // 7 Farklı Kazanç İhtimali Havuzu
         const wheelRewards = [100, 200, 400, 500, 700, 800, 1000];
 
         function updateProfileUI() {
+            if(curr.spinRights === undefined) curr.spinRights = 3;
+
             document.getElementById('prof-u').innerText = curr.username;
             document.getElementById('prof-p').innerText = curr.password;
             document.getElementById('prof-c').innerText = curr.coins.toLocaleString() + " 🪙";
-            document.getElementById('prof-s').innerText = curr.spins + " Hak";
+            document.getElementById('prof-s').innerText = curr.spinRights + " Hak";
 
             let idx = users.findIndex(u => u.username === curr.username);
             users[idx] = curr;
             localStorage.setItem('nexus_users', JSON.stringify(users));
 
-            // Kullanıcının kişisel bahis geçmişini filtrele ve ekrana bas
             let history = JSON.parse(localStorage.getItem('nexus_bet_history')) || [];
             let myHistory = history.filter(h => h.user === curr.username);
 
@@ -78,23 +77,32 @@
                 box.innerHTML = myHistory.map(h => `
                     <div class="pt-2 flex justify-between items-center">
                         <div><span class="text-gray-600">[${h.time}]</span> <span class="text-white font-bold">${h.game}</span></div>
-                        <div>Bet: <span class="text-gray-300 font-bold">${h.bet}</span> -> Sonuç: <span class="${h.payout > 0 ? 'text-green-400' : 'text-red-400'} font-bold">${h.payout > 0 ? '+' + h.payout : h.payout}</span></div>
+                        <div>Bet: <span class="text-gray-300 font-bold">${h.bet}</span> -> Sonuç: <span class="${h.payout >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${h.payout >= 0 ? '+' + h.payout : h.payout}</span></div>
                     </div>
                 `).join('');
             }
         }
 
         function spinWheel7() {
-            if(curr.spins < 1) { alert("Çevrim hakkınız kalmadı!"); return; }
-            curr.spins--;
+            if(curr.spinRights < 1) { alert("Çevrim hakkınız kalmadı! Admin paneli üzerinden hak talep edebilirsiniz."); return; }
+            curr.spinRights--;
             updateProfileUI();
             document.getElementById('wheel-status').innerText = "Çark hızla dönüyor...";
 
             setTimeout(() => {
-                // 7 ihtimal arasından rasgele ödül seçimi
                 let randomReward = wheelRewards[Math.floor(Math.random() * 7)];
                 curr.coins += randomReward;
                 document.getElementById('wheel-status').innerText = `🎉 TEBRİKLER! +${randomReward} COIN HESABINIZA EKLENDİ!`;
+                
+                // ADMİN PANELİ ÇARK GEÇMİŞİNE YAZMA ENJEKTÖRÜ
+                let wheelHistory = JSON.parse(localStorage.getItem('nexus_wheel_history')) || [];
+                wheelHistory.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    user: curr.username,
+                    reward: randomReward + " COIN"
+                });
+                localStorage.setItem('nexus_wheel_history', JSON.stringify(wheelHistory));
+
                 updateProfileUI();
             }, 600);
         }
