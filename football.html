@@ -18,13 +18,11 @@
         <div class="nexus-card rounded-2xl p-6 text-center">
             <h3 class="text-green-500 font-black text-xs tracking-widest mb-4">⚽ LIVE MATCH PREDICTION MATRIX (%50 ODDS)</h3>
 
-            <!-- MAÇ TÜRÜ SEÇİMİ -->
             <div class="grid grid-cols-2 gap-2 mb-6">
                 <button onclick="selectMatch(1)" id="m1" class="py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">AVRUPA KUPASI DERBİSİ</button>
                 <button onclick="selectMatch(2)" id="m2" class="py-2 bg-gray-900 text-gray-400 rounded-xl text-xs font-bold">İSTANBUL DERBİSİ</button>
             </div>
 
-            <!-- TAKIM SEÇİM ALANI -->
             <div class="bg-gray-950 border border-gray-800 p-6 rounded-2xl flex justify-around items-center gap-4 mb-6">
                 <button onclick="betTeam('A')" id="teamA-btn" class="w-28 py-4 bg-gray-900 border border-gray-800 rounded-xl font-bold text-xs text-white">TAKIM A</button>
                 <span class="text-xs font-mono font-black text-gray-600">VS</span>
@@ -60,27 +58,43 @@
         }
 
         function betTeam(selection) {
-            if(curr.coins < 2000) { alert("Tahmin için en az 2000 Coin gerekli!"); return; }
-            curr.coins -= 2000;
+            let currentBet = parseInt(localStorage.getItem('nexus_current_bet')) || 100;
+            if(curr.coins < currentBet) { alert(`Tahmin için en az ${currentBet} Coin gerekli!`); return; }
+            
+            curr.coins -= currentBet;
+            document.getElementById('foot-coins').innerText = curr.coins.toLocaleString() + " 🪙";
             document.getElementById('match-status').innerText = "Maç simüle ediliyor, düdük çalındı...";
 
             setTimeout(() => {
-                // %50 Net Tahmin İhtimali
                 const result = Math.random() < 0.50 ? 'A' : 'B';
                 const scoreA = Math.floor(Math.random() * 4);
                 const scoreB = Math.floor(Math.random() * 4);
                 
-                // Seçilen takımın kazanmasını garanti altına almak veya kaybettirmek için skorları revize et
                 let finalScore = "";
                 if(result === 'A') { finalScore = `${Math.max(scoreA, scoreB+1)} - ${Math.min(scoreA, scoreB)}`; }
                 else { finalScore = `${Math.min(scoreA, scoreB)} - ${Math.max(scoreA, scoreB+1)}`; }
 
+                let payout = -currentBet;
+                let activeMatchName = activeMatch === 1 ? "Avrupa Derbisi" : "İstanbul Derbisi";
+
                 if(selection === result) {
-                    curr.coins += 4000;
-                    document.getElementById('match-status').innerText = `🎉 TAHMİN DOĞRU! Maç Sonucu: [${finalScore}] +4000 COIN`;
+                    let winAmount = currentBet * 2;
+                    curr.coins += winAmount;
+                    payout = winAmount - currentBet;
+                    document.getElementById('match-status').innerText = `🎉 TAHMİN DOĞRU! Maç Sonucu: [${finalScore}] +${winAmount} COIN`;
                 } else {
                     document.getElementById('match-status').innerText = `❌ Maçı Kaybettiniz. Maç Sonucu: [${finalScore}]`;
                 }
+
+                let history = JSON.parse(localStorage.getItem('nexus_bet_history')) || [];
+                history.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    user: curr.username,
+                    game: `Futbol (${activeMatchName})`,
+                    bet: currentBet,
+                    payout: payout
+                });
+                localStorage.setItem('nexus_bet_history', JSON.stringify(history));
 
                 let idx = users.findIndex(u => u.username === curr.username);
                 users[idx] = curr;
