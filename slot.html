@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus - 3x4 Dynamic Slots</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
+        .nexus-card { background: #0b0f19; border: 1px solid #1e293b; }
+    </style>
 </head>
 <body>
 
@@ -33,7 +36,7 @@
 
     <script>
         const session = localStorage.getItem('nexus_session');
-        let users = JSON.parse(localStorage.getItem('nexus_users'));
+        let users = JSON.parse(localStorage.getItem('nexus_users')) || [];
         let curr = users.find(u => u.username === session);
 
         const themes = {
@@ -63,6 +66,9 @@
         }
 
         function spinSlots() {
+            // ADMIN YASAKLAMA KONTROLÜ
+            if(curr.betDisabled === true) { alert("❌ Bahis yapma yetkiniz admin tarafından askıya alınmıştır!"); return; }
+
             let currentBet = parseInt(localStorage.getItem('nexus_current_bet')) || 100;
             if(curr.coins < currentBet) { alert("Yetersiz Bakiye!"); return; }
             
