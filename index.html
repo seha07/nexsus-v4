@@ -3,154 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Nexus Entertainment Platform V4</title>
+    <title>⚡ Nexus Entertainment Platform V4 Enterprise</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #081224; color: white; font-family: system-ui, sans-serif; }
+        .blur-bg { backdrop-filter: blur(12px); }
     </style>
 </head>
 <body>
-    <div id="app" class="min-h-screen flex flex-col">
-        <header class="h-20 bg-[#162238] border-b border-slate-800 flex items-center justify-between px-8 shadow-xl">
-            <span class="font-black tracking-widest text-lg text-blue-400">⚡ NEXUS V4 ENTERPRISE</span>
-            <div class="flex items-center gap-4 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-amber-400 font-mono font-bold">
-                🪙 <span id="coin-txt">100.000</span> COIN
+    <div id="app">
+        <div id="auth-page" class="min-h-screen flex items-center justify-center p-4">
+            <div class="w-full max-w-md bg-[#162238] border border-slate-800 p-8 rounded-2xl text-center shadow-2xl">
+                <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold mb-4 shadow-lg shadow-blue-500/30">⚡</div>
+                <h2 class="text-xl font-black tracking-widest uppercase">NEXUS ENTERTAINMENT</h2>
+                <p class="text-xs text-slate-400 mt-1 mb-6">Rol Tabanlı Giriş ve SaaS Simülasyon Paneli</p>
+                
+                <div class="space-y-3">
+                    <button onclick="loginAs('admin')" class="w-full py-3.5 bg-red-600 hover:bg-red-500 font-bold rounded-xl transition-all shadow-lg shadow-red-600/20 text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-shield"></i> YÖNETİCİ (ADMIN) OLARAK GİRİŞ
+                    </button>
+                    <button onclick="loginAs('user')" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user"></i> OYUNCU (USER) OLARAK GİRİŞ
+                    </button>
+                </div>
             </div>
-        </header>
+        </div>
 
-        <main class="flex-1 p-8 max-w-6xl mx-auto w-full space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6">
-                    <h3 class="text-amber-400 font-bold mb-4 text-lg">🎰 SLOT CLASSIC</h3>
-                    <div class="flex gap-4 justify-center my-6">
-                        <div id="r1" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
-                        <div id="r2" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
-                        <div id="r3" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
+        <div id="main-platform" class="min-h-screen flex flex-col hidden">
+            <header class="h-20 bg-[#162238] border-b border-slate-800 flex items-center justify-between px-8 sticky top-0 z-50 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg">⚡</div>
+                    <span class="text-lg font-black tracking-widest hidden sm:inline">NEXUS V4 ENTERPRISE</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 shadow-inner">
+                        <span class="text-amber-400 animate-pulse">🪙</span>
+                        <span id="global-coins" class="font-mono font-bold text-amber-400 text-sm">75.000</span>
                     </div>
-                    <button onclick="spinSlot()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm text-white transition-all">ÇEVİR (100 COIN)</button>
-                    <p id="slot-msg" class="text-center text-xs mt-3 text-slate-400 font-bold h-4"></p>
-                </div>
-
-                <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6">
-                    <h3 class="text-red-400 font-bold mb-4 text-lg">🚀 CRASH ROCKET</h3>
-                    <div class="h-28 bg-black rounded-xl border border-slate-800 flex flex-col items-center justify-center my-4">
-                        <span id="crash-num" class="text-4xl font-mono font-black text-emerald-400">1.00x</span>
+                    <div class="flex items-center gap-3 border-l border-slate-800 pl-6">
+                        <div class="text-right">
+                            <p id="user-display-name" class="text-sm font-bold leading-tight">Geliştirici</p>
+                            <span id="user-display-role" class="text-[9px] px-1.5 py-0.5 rounded bg-red-950 border border-red-800 text-red-400 font-extrabold uppercase tracking-widest block mt-0.5">ADMIN</span>
+                        </div>
                     </div>
-                    <button onclick="startCrash()" id="crash-btn" class="w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all">ROKETİ BAŞLAT (200 COIN)</button>
+                    <button onclick="logout()" class="p-2.5 bg-red-950/40 hover:bg-red-950/80 border border-red-900/40 text-red-400 rounded-xl transition-all text-xs font-bold">Çıkış</button>
                 </div>
-            </div>
+            </header>
 
-            <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h3 class="text-slate-400 text-sm font-bold tracking-widest">⚙️ SİMÜLE YÖNETİM PANELİ (ADMIN)</h3>
-                <div class="w-full overflow-x-auto bg-slate-950 rounded-xl border border-slate-800">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="bg-slate-900 border-b border-slate-800 text-xs font-bold text-slate-400">
-                                <th class="p-4">ID</th>
-                                <th class="p-4">Kullanıcı</th>
-                                <th class="p-4">Rol</th>
-                                <th class="p-4">İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b border-slate-800/50">
-                                <td class="p-4 font-mono">#1</td>
-                                <td class="p-4 font-bold">Yapay Zeka Misafiri (Siz)</td>
-                                <td class="p-4 text-red-400 uppercase text-xs font-extrabold tracking-wider">ADMIN</td>
-                                <td class="p-4">
-                                    <button onclick="addAdminCoin()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold border border-slate-700 text-amber-400">+5000 COIN EKLE</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-8">
+                
+                <div>
+                    <h2 class="text-xl font-black tracking-tight flex items-center gap-2"><i class="fa-solid fa-gamepad text-blue-500"></i> EĞLENCE ODALARI</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Sanal bakiye ve simüle katsayılarla donatılmış oyun odaları.</p>
                 </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <div class="bg-[#162238] border border-slate-800/80 rounded-2xl p-6 shadow-md relative overflow-hidden">
+                        <h3 class="text-amber-400 font-black tracking-wider text-sm flex items-center gap-2 mb-4">🎰 SLOT CLASSIC (3 REELS)</h3>
+                        <div class="flex justify-center gap-3 my-6">
+                            <div id="sc1" class="w-16 h-24 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-3xl shadow-inner font-bold">⭐</div>
+                            <div id="sc2" class="w-16 h-24 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-3xl shadow-inner font-bold">⭐</div>
+                            <div id="sc3" class="w-16 h-24 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-3xl shadow-inner font-bold">⭐</div>
+                        </div>
+                        <p id="sc-msg" class="text-center text-xs font-bold h-4 text-indigo-300 mb-4"></p>
+                        <div class="flex justify-center items-center gap-3 mb-4">
+                            <button onclick="adjustBet(-50)" class="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs font-bold">-50</button>
+                            <span id="sc-bet-txt" class="font-mono font-bold text-amber-400 bg-slate-950 px-4 py-1 rounded-lg border border-slate-800 text-xs">BET: 100</span>
+                            <button onclick="adjustBet(50)" class="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs font-bold">+50</button>
+                        </div>
+                        <button onclick="playSlotClassic()" id="sc-btn" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg">ÇEVİR</button>
+                    </div>
+
+                    <div class="bg-[#162238] border border-slate-800/80 rounded-2xl p-6 shadow-md relative overflow-hidden">
+                        <div class="absolute top-3 right-4 bg-purple-950 border border-purple-800 text-[10px] text-purple-300 px-2 py-0.5 rounded-full font-bold">JACKPOT MODE</div>
+                        <h3 class="text-purple-400 font-black tracking-wider text-sm flex items-center gap-2 mb-4">👑 SLOT PREMIUM (5 REELS)</h3>
+                        <div class="grid grid-cols-5 gap-2 my-6">
+                            <div id="sp1" class="h-20 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-2xl shadow-inner">👑</div>
+                            <div id="sp2" class="h-20 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-2xl shadow-inner">👑</div>
+                            <div id="sp3" class="h-20 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-2xl shadow-inner">👑</div>
+                            <div id="sp4" class="h-20 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-2xl shadow-inner">👑</div>
+                            <div id="sp5" class="h-20 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center text-2xl shadow-inner">👑</div>
+                        </div>
+                        <p id="sp-msg" class="text-center text-xs font-bold h-4 text-purple-200 mb-4"></p>
+                        <div class="text-center mb-4 text-[11px] text-slate-400">Sabit Giriş Bedeli: <span class="font-bold text-amber-400">500 COIN</span></div>
+                        <button onclick="playSlotPremium()" id="sp-btn" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-xl text-sm transition-all shadow-lg">PREMIUM ÇEVİR</button>
+                    </div>
+
+                    <div class="bg-[#162238] border border-slate-800/80 rounded-2xl p-6 shadow-md relative overflow-hidden">
+                        <h3 class="text-red-400 font-black tracking-wider text-sm flex items-center gap-2 mb-4">🚀 CRASH MULTIPLIER MOTORU</h3>
+                        <div class="h-36 bg-slate-950 rounded-xl border border-slate-800 flex flex-col items-center justify-center mb-4">
+                            <span id="crash-multiplier" class="text-5xl font-mono font-black text-emerald-400 tracking-wider">1.00x</span>
+                            <span id="crash-status-sub" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Roket Hazır</span>
+                        </div>
+                        <div class="flex gap-4 items-center">
+                            <div class="w-1/3">
+                                <label class="text-[10px] text-slate-400 font-bold block mb-1">GİRİŞ TUTARI</label>
+                                <input type="number" id="crash-bet" value="200" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 font-mono text-center outline-none text-amber-400 text-sm font-bold">
+                            </div>
+                            <div class="w-2/3 pt-5">
+                                <button onclick="handleCrashAction()" id="crash-action-btn" class="w-full py-3 bg-red-600 hover:bg-red-500 font-black text-sm rounded-xl text-white transition-all shadow-lg">ROKETİ FIRLAT</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#162238] border border-slate-800/80 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-indigo-400 font-black tracking-wider text-sm flex items-center gap-2 mb-1">🎡 ŞANS ÇARKI</h3>
+                            <p class="text-[10px] text-slate-400">Ücretsiz çevrim haklarınız ile sanal ödüller toplayın.</p>
+                        </div>
+                        <div class="my-4 p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-around items-center">
+                            <div class="text-center">
+                                <p class="text-xs text-slate-400 font-bold">Kalan Hak</p>
+                                <p id="wheel-spins-cnt" class="text-2xl font-mono font-black text-indigo-400">3</p>
+                            </div>
+                            <div id="wheel-box" class="w-20 h-20 bg-indigo-950/40 border-2 border-dashed border-indigo-500 rounded-full flex items-center justify-center font-black text-xs text-indigo-300 animate-spin-slow">NEXUS</div>
+                        </div>
+                        <p id="wheel-msg" class="text-center text-xs font-bold h-4 text-indigo-200 mb-2"></p>
+                        <button onclick="spinLuckyWheel()" id="wheel-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl text-sm transition-all shadow-lg">ÇARKI ÇEVİR (-1 HAK)</button>
+                    </div>
+
+                </div>
+
+                <div id="admin-panel-section" class="bg-[#162238]/60 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-red-400 text-sm font-black tracking-widest flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench"></i> CANLI SİSTEM VE KULLANICI YÖNETİMİ</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Admin yetkisiyle sanal cüzdan manipülasyonu ve kullanıcı statü takibi.</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black tracking-wider rounded-lg">SİSTEM KONTROL ODASI</span>
+                    </div>
+
+                    <div class="w-full overflow-x-auto bg-slate-950 rounded-xl border border-slate-800/80">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="p-4">ID</th>
+                                    <th class="p-4">Kullanıcı Adı</th>
+                                    <th class="p-4">Rol</th>
+                                    <th class="p-4">Sanal Bakiye</th>
+                                    <th class="p-4 text-right">Yönetici İşlemi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-slate-950/80 border border-slate-800/60 rounded-xl p-4 space-y-2">
+                        <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase"><i class="fa-solid fa-list-ul"></i> CANLI SİSTEM LOGLARI</p>
+                        <div id="log-container" class="space-y-1.5 max-h-32 overflow-y-auto font-mono text-[11px] text-slate-400 divide-y divide-slate-900 pt-1">
+                            </div>
+                    </div>
+                </div>
+
             </div>
-        </main>
+        </div>
     </div>
 
     <script>
-        let coins = 100000;
-        const items = ['🍒', '🍋', '💎', '⭐', '7️⃣'];
+        // Global Veritabanı Simülasyonu
+        let currentUser = null;
+        let db = {
+            users: [
+                { id: '1', username: 'AlphaAdmin', role: 'admin', coins: 75000, spins: 5, status: 'Aktif' },
+                { id: '2', username: 'VortexUser', role: 'user', coins: 3500, spins: 1, status: 'Aktif' }
+            ],
+            logs: []
+        };
 
-        function updateUI() {
-            document.getElementById('coin-txt').innerText = coins.toLocaleString();
+        // Değişkenler
+        let currentBet = 100;
+        const slotItems = ['🍒', '🍋', '💎', '⭐', '7️⃣'];
+        const premiumItems = ['👑', '💎', '💵', '⭐', '7️⃣'];
+        let crashInterval = null;
+        let crashStatus = 'idle'; // idle, running, crashed
+        let currentMultiplier = 1.0;
+        let targetCrashPoint = 1.0;
+
+        function addLog(action, details) {
+            const time = new Date().toLocaleTimeString();
+            db.logs.unshift({ time, action, details, actor: currentUser ? currentUser.username : 'SİSTEM' });
+            renderLogs();
         }
 
-        function spinSlot() {
-            if (coins < 100) { alert("Yetersiz bakiye!"); return; }
-            coins -= 100;
-            updateUI();
-            document.getElementById('slot-msg').innerText = "Makaralar dönüyor...";
-            
-            setTimeout(() => {
-                const res1 = items[Math.floor(Math.random() * items.length)];
-                const res2 = items[Math.floor(Math.random() * items.length)];
-                const res3 = items[Math.floor(Math.random() * items.length)];
-                
-                document.getElementById('r1').innerText = res1;
-                document.getElementById('r2').innerText = res2;
-                document.getElementById('r3').innerText = res3;
-
-                if (res1 === res2 && res2 === res3) {
-                    coins += 1500;
-                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-emerald-400 font-bold";
-                    document.getElementById('slot-msg').innerText = "🎉 TEBRİKLER! 3lü Kombinasyon: +1500 Coin!";
-                } else if (res1 === res2 || res2 === res3 || res1 === res3) {
-                    coins += 200;
-                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-blue-400 font-bold";
-                    document.getElementById('slot-msg').innerText = "👍 Güzel! İkili Eşleşme: +200 Coin";
-                } else {
-                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-red-400 font-bold";
-                    document.getElementById('slot-msg').innerText = "❌ Kazanç Yok. Tekrar Dene!";
-                }
-                updateUI();
-            }, 600);
+        function renderLogs() {
+            const container = document.getElementById('log-container');
+            container.innerHTML = db.logs.map(l => `
+                <div class="pt-1.5 flex justify-between">
+                    <span>[${l.time}] <strong class="text-blue-400">${l.action}</strong>: ${l.details}</span>
+                    <span class="text-slate-500 text-[10px]">Yetkili: ${l.actor}</span>
+                </div>
+            `).join('');
         }
 
-        let crashInterval;
-        function startCrash() {
-            if (coins < 200) { alert("Yetersiz bakiye!"); return; }
-            const btn = document.getElementById('crash-btn');
-            
-            if (btn.innerText.includes("NAKİT ÇIKIŞ")) {
-                clearInterval(crashInterval);
-                let currentMult = parseFloat(document.getElementById('crash-num').innerText);
-                let win = Math.floor(200 * currentMult);
-                coins += win;
-                alert(`🚀 Başarılı Nakit Çıkışı! ${currentMult}x katsayı ile +${win} Coin kazandınız!`);
-                btn.innerText = "ROKETİ BAŞLAT (200 COIN)";
-                btn.className = "w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all";
-                updateUI();
-                return;
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = db.users.map(u => `
+                <tr class="border-b border-slate-900/60 hover:bg-slate-900/20">
+                    <td class="p-4 font-mono text-slate-500">#${u.id}</td>
+                    <td class="p-4 font-bold text-slate-200">${u.username} ${u.id === currentUser?.id ? '<span class="text-[9px] text-emerald-400 font-normal">(Siz)</span>' : ''}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 text-[9px] font-extrabold tracking-widest uppercase rounded ${u.role === 'admin' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-slate-800 text-slate-400'}">${u.role}</span></td>
+                    <td class="p-4 font-mono font-bold text-amber-400">${u.coins.toLocaleString()} 🪙</td>
+                    <td class="p-4 text-right">
+                        <button onclick="adminAddCoin('${u.id}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-800 font-bold text-[10px] rounded-lg">+5000 COIN</button>
+                        <button onclick="adminToggleRole('${u.id}')" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-blue-400 border border-slate-800 font-bold text-[10px] rounded-lg ml-1">ROL DEĞİŞTİR</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePlatformUI() {
+            if(!currentUser) return;
+            document.getElementById('global-coins').innerText = currentUser.coins.toLocaleString();
+            document.getElementById('user-display-name').innerText = currentUser.username;
+            document.getElementById('user-display-role').innerText = currentUser.role.toUpperCase();
+            document.getElementById('wheel-spins-cnt').innerText = currentUser.spins;
+
+            const roleBadge = document.getElementById('user-display-role');
+            if(currentUser.role === 'admin') {
+                roleBadge.className = "text-[9px] px-1.5 py-0.5 rounded bg-red-950 border border-red-800 text-red-400 font-extrabold uppercase tracking-widest block mt-0.5";
+                document.getElementById('admin-panel-section').classList.remove('hidden');
+            } else {
+                roleBadge.className = "text-[9px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 font-extrabold uppercase tracking-widest block mt-0.5";
+                document.getElementById('admin-panel-section').classList.add('hidden');
             }
-
-            coins -= 200;
-            updateUI();
-            btn.innerText = "NAKİT ÇIKIŞ YAP (CASHOUT)";
-            btn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm text-white transition-all";
-            
-            let current = 1.0;
-            let crashPoint = (1.0 + Math.random() * 3.5).toFixed(2);
-            
-            crashInterval = setInterval(() => {
-                current += 0.05;
-                document.getElementById('crash-num').innerText = current.toFixed(2) + "x";
-                document.getElementById('crash-num').className = "text-4xl font-mono font-black text-emerald-400";
-                
-                if (current >= crashPoint) {
-                    clearInterval(crashInterval);
-                    document.getElementById('crash-num').innerText = "💥 PATLADI @ " + crashPoint + "x";
-                    document.getElementById('crash-num').className = "text-2xl font-mono font-black text-red-500";
-                    btn.innerText = "ROKETİ BAŞLAT (200 COIN)";
-                    btn.className = "w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all";
-                }
-            }, 100);
+            renderUsersTable();
         }
 
-        function addAdminCoin() {
-            coins += 5000;
-            updateUI();
+        // AUTH MOTORU
+        function loginAs(role) {
+            const userObj = db.users.find(u => u.role === role);
+            if(userObj) {
+                currentUser = userObj;
+                document.getElementById('auth-page').classList.add('hidden');
+                document.getElementById('main-platform').classList.remove('hidden');
+                addLog('LOGIN', `${currentUser.username} (${currentUser.role}) sisteme başarıyla bağlandı.`);
+                updatePlatformUI();
+            }
         }
-    </script>
-</body>
-</html>
+
+        function logout() {
+            addLog('LOGOUT', `${currentUser.username} oturumu sonlandırdı.`);
+            currentUser = null;
+            document.getElementById('main-platform').classList.add('hidden');
+            document.getElementById('auth-page').classList.remove('hidden');
+        }
+
+        // ADMIN FONKSİYONLARI
+        function adminAddCoin(userId) {
+            const userObj = db.users.find(u => u.id === userId);
+            if(userObj) {
+                userObj.coins += 5000;
+                addLog('ADMIN_ACTION', `Yönetici, ${userObj.username} hesabına +5000 Sanal Coin aktardı.`);
+                updatePlatformUI();
+            }
+        }
+
+        function adminToggleRole(userId) {
+            const userObj = db.users.find(u => u.id ===
