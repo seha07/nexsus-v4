@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Stadyum Simülatörü</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="h-20 nexus-card border-b flex items-center justify-between px-8">
+        <button onclick="window.location.href='dashboard.html'" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold">⬅️ Lobiye Dön</button>
+        <div class="bg-gray-950 border border-gray-800 px-4 py-2 rounded-xl text-yellow-400 font-bold font-mono text-sm" id="foot-coins">0 🪙</div>
+    </header>
+
+    <div class="p-6 max-w-xl mx-auto w-full space-y-6">
+        <div class="nexus-card rounded-2xl p-6 text-center">
+            <h3 class="text-green-500 font-black text-xs tracking-widest mb-4">⚽ LIVE MATCH PREDICTION MATRIX (%50 ODDS)</h3>
+
+            <!-- MAÇ TÜRÜ SEÇİMİ -->
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="selectMatch(1)" id="m1" class="py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">AVRUPA KUPASI DERBİSİ</button>
+                <button onclick="selectMatch(2)" id="m2" class="py-2 bg-gray-900 text-gray-400 rounded-xl text-xs font-bold">İSTANBUL DERBİSİ</button>
+            </div>
+
+            <!-- TAKIM SEÇİM ALANI -->
+            <div class="bg-gray-950 border border-gray-800 p-6 rounded-2xl flex justify-around items-center gap-4 mb-6">
+                <button onclick="betTeam('A')" id="teamA-btn" class="w-28 py-4 bg-gray-900 border border-gray-800 rounded-xl font-bold text-xs text-white">TAKIM A</button>
+                <span class="text-xs font-mono font-black text-gray-600">VS</span>
+                <button onclick="betTeam('B')" id="teamB-btn" class="w-28 py-4 bg-gray-900 border border-gray-800 rounded-xl font-bold text-xs text-white">TAKIM B</button>
+            </div>
+
+            <p id="match-status" class="text-xs font-bold text-green-400 h-4 mb-4"></p>
+        </div>
+    </div>
+
+    <script>
+        const session = localStorage.getItem('nexus_session');
+        let users = JSON.parse(localStorage.getItem('nexus_users'));
+        let curr = users.find(u => u.username === session);
+
+        let activeMatch = 1;
+        const matches = {
+            1: { tA: 'Real Madrid ⚪', tB: 'Barcelona 🔵🔴' },
+            2: { tA: 'Galatasaray 🔴🟡', tB: 'Fenerbahçe 🟡🔵' }
+        };
+
+        function selectMatch(id) {
+            activeMatch = id;
+            document.getElementById('m1').className = id === 1 ? 'py-2 bg-blue-600 text-white rounded-xl text-xs font-bold' : 'py-2 bg-gray-900 text-gray-400 rounded-xl text-xs font-bold';
+            document.getElementById('m2').className = id === 2 ? 'py-2 bg-blue-600 text-white rounded-xl text-xs font-bold' : 'py-2 bg-gray-900 text-gray-400 rounded-xl text-xs font-bold';
+            renderTeams();
+        }
+
+        function renderTeams() {
+            document.getElementById('teamA-btn').innerText = matches[activeMatch].tA;
+            document.getElementById('teamB-btn').innerText = matches[activeMatch].tB;
+            document.getElementById('foot-coins').innerText = curr.coins.toLocaleString() + " 🪙";
+        }
+
+        function betTeam(selection) {
+            if(curr.coins < 2000) { alert("Tahmin için en az 2000 Coin gerekli!"); return; }
+            curr.coins -= 2000;
+            document.getElementById('match-status').innerText = "Maç simüle ediliyor, düdük çalındı...";
+
+            setTimeout(() => {
+                // %50 Net Tahmin İhtimali
+                const result = Math.random() < 0.50 ? 'A' : 'B';
+                const scoreA = Math.floor(Math.random() * 4);
+                const scoreB = Math.floor(Math.random() * 4);
+                
+                // Seçilen takımın kazanmasını garanti altına almak veya kaybettirmek için skorları revize et
+                let finalScore = "";
+                if(result === 'A') { finalScore = `${Math.max(scoreA, scoreB+1)} - ${Math.min(scoreA, scoreB)}`; }
+                else { finalScore = `${Math.min(scoreA, scoreB)} - ${Math.max(scoreA, scoreB+1)}`; }
+
+                if(selection === result) {
+                    curr.coins += 4000;
+                    document.getElementById('match-status').innerText = `🎉 TAHMİN DOĞRU! Maç Sonucu: [${finalScore}] +4000 COIN`;
+                } else {
+                    document.getElementById('match-status').innerText = `❌ Maçı Kaybettiniz. Maç Sonucu: [${finalScore}]`;
+                }
+
+                let idx = users.findIndex(u => u.username === curr.username);
+                users[idx] = curr;
+                localStorage.setItem('nexus_users', JSON.stringify(users));
+                renderTeams();
+            }, 600);
+        }
+
+        selectMatch(1);
+    </script>
+</body>
+</html>
