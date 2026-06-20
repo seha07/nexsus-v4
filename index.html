@@ -3,32 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus - Giriş Paneli</title>
+    <title>Nexus - Giriş & Kayıt</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md nexus-card p-8 rounded-2xl text-center shadow-2xl">
-        <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold mb-4 shadow-lg text-white">⚡</div>
-        <h2 class="text-xl font-black tracking-widest uppercase text-white">NEXUS ENTERTAINMENT</h2>
-        <p class="text-xs text-gray-400 mt-1 mb-6">Modüler Rol Tabanlı Eğlence Platformu</p>
-        
-        <div class="space-y-3">
-            <button onclick="goToPage('admin.html')" class="w-full py-4 btn-danger font-bold rounded-xl text-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-user-shield"></i> YÖNETİCİ (ADMIN) OLARAK GİRİŞ
-            </button>
-            <button onclick="goToPage('dashboard.html')" class="w-full py-4 btn-primary font-bold rounded-xl text-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-user"></i> OYUNCU (USER) OLARAK GİRİŞ
-            </button>
+    <div class="w-full max-w-md nexus-card p-8 rounded-2xl shadow-2xl space-y-6">
+        <div class="text-center">
+            <div class="w-12 h-12 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-xl font-bold mb-2">⚡</div>
+            <h2 class="text-xl font-black tracking-wider uppercase text-white">NEXUS ENTERTAINMENT</h2>
+            <p class="text-xs text-gray-400" id="form-title">Hesabınıza Giriş Yapın</p>
+        </div>
+
+        <p id="msg" class="text-center text-xs font-bold text-red-400 h-4"></p>
+
+        <div id="login-form" class="space-y-4">
+            <div>
+                <label class="text-xs text-gray-400 font-bold block mb-1">KULLANICI ADI</label>
+                <input type="text" id="login-username" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400 font-bold block mb-1">ŞİFRE</label>
+                <input type="password" id="login-password" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none">
+            </div>
+            <button onclick="handleLogin()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg">GİRİŞ YAP</button>
+            <p class="text-center text-xs text-gray-500">Hesabınız yok mu? <span onclick="toggleForm(true)" class="text-blue-400 cursor-pointer hover:underline">Kayıt Olun</span></p>
+        </div>
+
+        <div id="register-form" class="space-y-4 hidden">
+            <div>
+                <label class="text-xs text-gray-400 font-bold block mb-1">YENİ KULLANICI ADI</label>
+                <input type="text" id="reg-username" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400 font-bold block mb-1">ŞİFRE SEÇİN</label>
+                <input type="password" id="reg-password" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none">
+            </div>
+            <button onclick="handleRegister()" class="w-full py-3.5 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg">KAYIT OL VE HESAP AÇ</button>
+            <p class="text-center text-xs text-gray-500">Zaten üye misiniz? <span onclick="toggleForm(false)" class="text-blue-400 cursor-pointer hover:underline">Giriş Yapın</span></p>
         </div>
     </div>
 
     <script>
-        function goToPage(page) {
-            // Tarayıcı yönlendirmesini tetikler ve butonları kesin olarak aktif eder
-            window.location.href = page;
+        // Sistem Başlangıç Veritabanı Kurulumu
+        if (!localStorage.getItem('nexus_users')) {
+            localStorage.setItem('nexus_users', JSON.stringify([
+                { username: 'player1', password: '123', coins: 50000, spins: 3, banned: false }
+            ]));
+        }
+        if (!localStorage.getItem('nexus_tasks')) {
+            localStorage.setItem('nexus_tasks', JSON.stringify([
+                { id: 1, text: 'Slot Classic oyununda 3 çevrim yap.', reward: 500 }
+            ]));
+        }
+        if (!localStorage.getItem('nexus_logs')) {
+            localStorage.setItem('nexus_logs', JSON.stringify([]));
+        }
+
+        const admins = {
+            'admin11': 'admin123',
+            'admin22': 'admin123'
+        };
+
+        function toggleForm(showRegister) {
+            document.getElementById('login-form').style.display = showRegister ? 'none' : 'block';
+            document.getElementById('register-form').style.display = showRegister ? 'block' : 'none';
+            document.getElementById('form-title').innerText = showRegister ? 'Yeni Oyuncu Profili Oluşturun' : 'Hesabınıza Giriş Yapın';
+            document.getElementById('msg').innerText = '';
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value;
+            const msg = document.getElementById('msg');
+
+            if(!u || !p) { msg.innerText = "Alanlar boş bırakılamaz."; return; }
+
+            // Admin Kontrolü
+            if (admins[u] && admins[u] === p) {
+                localStorage.setItem('nexus_current_admin', u);
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            // Kullanıcı Kontrolü
+            let users = JSON.stringify(localStorage.getItem('nexus_users') ? JSON.parse(localStorage.getItem('nexus_users')) : []);
+            users = JSON.parse(users);
+            const user = users.find(userObj => userObj.username === u && userObj.password === p);
+
+            if (user) {
+                if (user.banned) {
+                    msg.innerText = "🚫 Bu hesap admin tarafından banlanmıştır!";
+                    return;
+                }
+                localStorage.setItem('nexus_session', u);
+                window.location.href = 'dashboard.html';
+            } else {
+                msg.innerText = "Hatalı kullanıcı adı veya şifre!";
+            }
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('reg-username').value.trim();
+            const p = document.getElementById('reg-password').value;
+            const msg = document.getElementById('msg');
+
+            if(!u || !p) { msg.innerText = "Alanlar boş bırakılamaz."; return; }
+            if(admins[u]) { msg.innerText = "Bu kullanıcı adı rezerve edilmiştir."; return; }
+
+            let users = JSON.parse(localStorage.getItem('nexus_users'));
+            if(users.find(userObj => userObj.username === u)) {
+                msg.innerText = "Bu kullanıcı adı zaten alınmış.";
+                return;
+            }
+
+            users.push({ username: u, password: p, coins: 25000, spins: 3, banned: false });
+            localStorage.setItem('nexus_users', JSON.stringify(users));
+            
+            msg.className = "text-center text-xs font-bold text-green-400 h-4";
+            msg.innerText = "Hesap başarıyla açıldı! Giriş yapabilirsiniz.";
+            setTimeout(() => { toggleForm(false); }, 1000);
         }
     </script>
 </body>
