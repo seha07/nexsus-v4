@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus - Advanced Admin Control Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
+        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
         .nexus-card { background: #0b0f19; border: 1px solid #1e293b; }
     </style>
 </head>
-<body class="bg-gray-950 text-gray-200 font-sans pb-12">
+<body class="pb-12">
 
     <!-- HEADER -->
     <header class="h-20 nexus-card border-b flex items-center justify-between px-8 mb-6">
@@ -26,7 +26,7 @@
 
     <div class="max-w-7xl mx-auto px-6 space-y-6">
         
-        <!-- YETKİSİZ KULLANICI UYARISI (SADECE ADMIN22 İÇİN SÜS) -->
+        <!-- YETKİSİZ KULLANICI UYARISI (SADECE ADMIN22 GÖRÜR) -->
         <div id="restriction-notice" class="hidden p-4 bg-yellow-950/40 border border-yellow-800 rounded-xl text-xs text-yellow-400">
             ⚠️ <strong>Sınırlı Yetki Modu:</strong> `admin22` hesabıyla oturum açtınız. Gelişmiş kullanıcı modifikasyonları, kısıtlamalar ve log sistemleri yetkiniz dışındadır.
         </div>
@@ -74,57 +74,63 @@
     </div>
 
     <script>
-        // Yönetici Sabit Hesap Doğrulaması & Güncellemesi
+        // 1. Veritabanını Bellekten Güvenli Bir Şekilde Al
         let users = JSON.parse(localStorage.getItem('nexus_users')) || [];
-        
-        // admin11 Şifre Güncelleme (229812)
-        let a11 = users.find(u => u.username === 'admin11');
-        if(a11) { a11.password = '229812'; a11.role = 'superadmin'; } 
-        else { users.push({username: 'admin11', password: '229812', coins: 100000, role: 'superadmin', spinRights: 5, betDisabled: false}); }
+        const currentAdminSession = localStorage.getItem('nexus_session');
 
-        // admin22 Kontrolü
-        let a22 = users.find(u => u.username === 'admin22');
-        if(a22) { a22.role = 'limitedadmin'; }
-        else { users.push({username: 'admin22', password: 'admin', coins: 50000, role: 'limitedadmin', spinRights: 0, betDisabled: false}); }
-
-        localStorage.setItem('nexus_users', JSON.stringify(users));
-
-        // Mevcut Giriş Yapan Admin Oturumu
-        const currentAdmin = localStorage.getItem('nexus_session');
-        const adminAccount = users.find(u => u.username === currentAdmin);
-
-        // Güvenlik & Yetki Kontrolü Duvarı
-        if (!adminAccount || (adminAccount.username !== 'admin11' && adminAccount.username !== 'admin22')) {
-            alert("Bu panele erişim yetkiniz yok!");
+        // 2. Güvenlik ve Kimlik Doğrulama Katmanı (Hataya Sebep Olan Alan Çözüldü)
+        if (!currentAdminSession || (currentAdminSession !== 'admin11' && currentAdminSession !== 'admin22')) {
+            alert("⚠️ Bu panele erişim yetkiniz yok! Lütfen yetkili bir hesapla giriş yapın.");
             window.location.href = 'dashboard.html';
         }
 
-        document.getElementById('admin-session-name').innerText = `Giriş: ${adminAccount.username} (${adminAccount.username === 'admin11' ? 'Tam Yetkili' : 'Sınırlı Yetki'})`;
+        // 3. Hesapların Veritabanındaki Varlığını ve Rollerini Kesinleştir/Eşitle
+        let a11 = users.find(u => u.username === 'admin11');
+        if (a11) { 
+            a11.password = '229812'; 
+            a11.role = 'superadmin'; 
+        } else { 
+            users.push({username: 'admin11', password: '229812', coins: 999999, role: 'superadmin', spinRights: 99, betDisabled: false}); 
+        }
 
-        // Arayüz Yetki Ayrıştırma İşlemi
-        if(adminAccount.username === 'admin22') {
+        let a22 = users.find(u => u.username === 'admin22');
+        if (a22) { 
+            a22.role = 'limitedadmin'; 
+        } else { 
+            users.push({username: 'admin22', password: 'admin', coins: 50000, role: 'limitedadmin', spinRights: 0, betDisabled: false}); 
+        }
+        
+        // Verileri hemen senkronize et
+        localStorage.setItem('nexus_users', JSON.stringify(users));
+
+        // 4. Arayüz Görünürlük Ayarlarını Yapılandır
+        document.getElementById('admin-session-name').innerText = `Giriş: ${currentAdminSession} (${currentAdminSession === 'admin11' ? 'Tam Yetkili' : 'Sınırlı Yetki'})`;
+
+        if (currentAdminSession === 'admin22') {
+            // admin22 giriş yaptıysa yetkisi olmayan her şeyi imha et/gizle
             document.getElementById('restriction-notice').classList.remove('hidden');
+            document.getElementById('super-admin-section').innerHTML = "";
             document.getElementById('super-admin-section').classList.add('hidden');
+            document.getElementById('logs-section').innerHTML = "";
             document.getElementById('logs-section').classList.add('hidden');
         }
 
-        // Tabloyu ve Logları Listeleme Fonksiyonu
+        // 5. Veri Listeleme Motoru (Sadece admin11 için çalışır)
         function renderAdminPanel() {
-            if(adminAccount.username === 'admin22') return; // admin22 ise aşağısını çalıştırma
+            if (currentAdminSession === 'admin22') return;
 
             const tbody = document.getElementById('users-table-body');
             tbody.innerHTML = '';
             
-            // Yenilenen veriyi çek
+            // Güncel veriyi çek
             users = JSON.parse(localStorage.getItem('nexus_users')) || [];
 
             users.forEach(user => {
-                // Admin hesaplarının kendisini listede manipüle etmesini engellemek için filtre
-                if(user.username === 'admin11' || user.username === 'admin22') return;
+                // Listeden adminlerin kendisini gizle (düzenlenmesinler diye)
+                if (user.username === 'admin11' || user.username === 'admin22') return;
 
-                // Varsayılan eksik parametreleri ata
-                if(user.spinRights === undefined) user.spinRights = 3;
-                if(user.betDisabled === undefined) user.betDisabled = false;
+                if (user.spinRights === undefined) user.spinRights = 3;
+                if (user.betDisabled === undefined) user.betDisabled = false;
 
                 const betStatusBadge = user.betDisabled 
                     ? `<span class="px-2 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-[10px]">YASAKLI</span>`
@@ -147,11 +153,10 @@
                 `;
             });
 
-            // LOGLARI DOLDUR
-            // 1. Bahis Geçmişi Logları
+            // LOGLARI OLUŞTUR
             const betLogsContainer = document.getElementById('global-bet-logs');
             const betHistory = JSON.parse(localStorage.getItem('nexus_bet_history')) || [];
-            if(betHistory.length === 0) {
+            if (betHistory.length === 0) {
                 betLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz oynanmış bahis yok.</p>`;
             } else {
                 betLogsContainer.innerHTML = betHistory.map(log => `
@@ -168,10 +173,9 @@
                 `).join('');
             }
 
-            // 2. Çark Ödül Logları
             const wheelLogsContainer = document.getElementById('wheel-reward-logs');
             const wheelHistory = JSON.parse(localStorage.getItem('nexus_wheel_history')) || [];
-            if(wheelHistory.length === 0) {
+            if (wheelHistory.length === 0) {
                 wheelLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz çark çeviren kullanıcı yok.</p>`;
             } else {
                 wheelLogsContainer.innerHTML = wheelHistory.map(log => `
@@ -186,28 +190,26 @@
             }
         }
 
-        // Bahis Yetkisi Açma / Kapatma Motoru
         function toggleBetPermission(username) {
             let uIdx = users.findIndex(u => u.username === username);
-            if(uIdx !== -1) {
+            if (uIdx !== -1) {
                 users[uIdx].betDisabled = !users[uIdx].betDisabled;
                 localStorage.setItem('nexus_users', JSON.stringify(users));
                 renderAdminPanel();
             }
         }
 
-        // Çark Hakkı Ekleme / Çıkarma Motoru
         function adjustSpin(username, amount) {
             let uIdx = users.findIndex(u => u.username === username);
-            if(uIdx !== -1) {
-                if(users[uIdx].spinRights === undefined) users[uIdx].spinRights = 3;
+            if (uIdx !== -1) {
+                if (users[uIdx].spinRights === undefined) users[uIdx].spinRights = 3;
                 users[uIdx].spinRights = Math.max(0, users[uIdx].spinRights + amount);
                 localStorage.setItem('nexus_users', JSON.stringify(users));
                 renderAdminPanel();
             }
         }
 
-        // Paneli ilk çalıştırma
+        // Tetikleyici Başlatıcı
         renderAdminPanel();
     </script>
 </body>
