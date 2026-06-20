@@ -1,216 +1,104 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus - Advanced Admin Control Panel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-    <style>
-        body { background-color: #030712; color: #f3f4f6; font-family: sans-serif; }
-        .nexus-card { background: #0b0f19; border: 1px solid #1e293b; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexsus Admin V5</title>
+
+<link rel="stylesheet" href="admin.css">
 </head>
-<body class="pb-12">
+<body>
 
-    <!-- HEADER -->
-    <header class="h-20 nexus-card border-b flex items-center justify-between px-8 mb-6">
-        <div class="flex items-center gap-3">
-            <span class="text-xl">🛡️</span>
-            <div>
-                <h1 class="text-sm font-black tracking-wider text-white">NEXUS CONTROL CORE</h1>
-                <p class="text-[10px] text-gray-400 font-mono" id="admin-session-name">Giriş: -</p>
-            </div>
-        </div>
-        <button onclick="window.location.href='dashboard.html'" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold">Lobiye Dön</button>
-    </header>
+<div class="sidebar">
 
-    <div class="max-w-7xl mx-auto px-6 space-y-6">
-        
-        <!-- YETKİSİZ KULLANICI UYARISI (SADECE ADMIN22 GÖRÜR) -->
-        <div id="restriction-notice" class="hidden p-4 bg-yellow-950/40 border border-yellow-800 rounded-xl text-xs text-yellow-400">
-            ⚠️ <strong>Sınırlı Yetki Modu:</strong> `admin22` hesabıyla oturum açtınız. Gelişmiş kullanıcı modifikasyonları, kısıtlamalar ve log sistemleri yetkiniz dışındadır.
-        </div>
+<h2>NEXSUS ADMIN</h2>
 
-        <!-- KULLANICI YÖNETİM MATRİSİ (SADECE ADMIN11 GÖRÜR) -->
-        <div id="super-admin-section" class="nexus-card rounded-2xl p-6">
-            <h3 class="text-xs font-black text-blue-500 tracking-widest mb-4">👥 KULLANICI KONTROL & YETKİLENDİRME MERKEZİ</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs font-mono">
-                    <thead>
-                        <tr class="border-b border-gray-800 text-gray-400">
-                            <th class="p-3">Kullanıcı Adı</th>
-                            <th class="p-3">Bakiye</th>
-                            <th class="p-3">Çark Hakkı</th>
-                            <th class="p-3">Bahis Durumu</th>
-                            <th class="p-3 text-right">Hızlı Müdahale Eylemleri</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table-body">
-                        <!-- Dinamik doldurulacak -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<button onclick="showTab('dashboard')">
+📊 Dashboard
+</button>
 
-        <!-- LOG SİSTEMLERİ (SADECE ADMIN11 GÖRÜR) -->
-        <div id="logs-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Global Bahis Geçmişi -->
-            <div class="nexus-card rounded-2xl p-6">
-                <h3 class="text-xs font-black text-green-500 tracking-widest mb-4">📊 KULLANICI BAHİS GEÇMİŞİ LOGLARI</h3>
-                <div class="h-80 overflow-y-auto space-y-2 pr-2" id="global-bet-logs">
-                    <!-- Loglar -->
-                </div>
-            </div>
+<button onclick="showTab('users')">
+👥 Kullanıcılar
+</button>
 
-            <!-- Çark Kazanç Geçmişi -->
-            <div class="nexus-card rounded-2xl p-6">
-                <h3 class="text-xs font-black text-purple-500 tracking-widest mb-4">🎡 ÇARK ÇEVİRİM ÖDÜL LOGLARI</h3>
-                <div class="h-80 overflow-y-auto space-y-2 pr-2" id="wheel-reward-logs">
-                    <!-- Loglar -->
-                </div>
-            </div>
-        </div>
+<button onclick="showTab('logs')">
+📜 Loglar
+</button>
 
-    </div>
+<button onclick="logout()">
+🚪 Çıkış
+</button>
 
-    <script>
-        // 1. Veritabanını Bellekten Güvenli Bir Şekilde Al
-        let users = JSON.parse(localStorage.getItem('nexus_users')) || [];
-        const currentAdminSession = localStorage.getItem('nexus_session');
+</div>
 
-        // 2. Güvenlik ve Kimlik Doğrulama Katmanı (Hataya Sebep Olan Alan Çözüldü)
-        if (!currentAdminSession || (currentAdminSession !== 'admin11' && currentAdminSession !== 'admin22')) {
-            alert("⚠️ Bu panele erişim yetkiniz yok! Lütfen yetkili bir hesapla giriş yapın.");
-            window.location.href = 'dashboard.html';
-        }
+<div class="content">
 
-        // 3. Hesapların Veritabanındaki Varlığını ve Rollerini Kesinleştir/Eşitle
-        let a11 = users.find(u => u.username === 'admin11');
-        if (a11) { 
-            a11.password = '229812'; 
-            a11.role = 'superadmin'; 
-        } else { 
-            users.push({username: 'admin11', password: '229812', coins: 999999, role: 'superadmin', spinRights: 99, betDisabled: false}); 
-        }
+<div id="dashboard" class="tab active">
 
-        let a22 = users.find(u => u.username === 'admin22');
-        if (a22) { 
-            a22.role = 'limitedadmin'; 
-        } else { 
-            users.push({username: 'admin22', password: 'admin', coins: 50000, role: 'limitedadmin', spinRights: 0, betDisabled: false}); 
-        }
-        
-        // Verileri hemen senkronize et
-        localStorage.setItem('nexus_users', JSON.stringify(users));
+<h1>Dashboard</h1>
 
-        // 4. Arayüz Görünürlük Ayarlarını Yapılandır
-        document.getElementById('admin-session-name').innerText = `Giriş: ${currentAdminSession} (${currentAdminSession === 'admin11' ? 'Tam Yetkili' : 'Sınırlı Yetki'})`;
+<div class="cards">
 
-        if (currentAdminSession === 'admin22') {
-            // admin22 giriş yaptıysa yetkisi olmayan her şeyi imha et/gizle
-            document.getElementById('restriction-notice').classList.remove('hidden');
-            document.getElementById('super-admin-section').innerHTML = "";
-            document.getElementById('super-admin-section').classList.add('hidden');
-            document.getElementById('logs-section').innerHTML = "";
-            document.getElementById('logs-section').classList.add('hidden');
-        }
+<div class="card">
+<h3>Kullanıcı</h3>
+<span id="totalUsers">0</span>
+</div>
 
-        // 5. Veri Listeleme Motoru (Sadece admin11 için çalışır)
-        function renderAdminPanel() {
-            if (currentAdminSession === 'admin22') return;
+<div class="card">
+<h3>Toplam Coin</h3>
+<span id="totalCoins">0</span>
+</div>
 
-            const tbody = document.getElementById('users-table-body');
-            tbody.innerHTML = '';
-            
-            // Güncel veriyi çek
-            users = JSON.parse(localStorage.getItem('nexus_users')) || [];
+</div>
 
-            users.forEach(user => {
-                // Listeden adminlerin kendisini gizle (düzenlenmesinler diye)
-                if (user.username === 'admin11' || user.username === 'admin22') return;
+</div>
 
-                if (user.spinRights === undefined) user.spinRights = 3;
-                if (user.betDisabled === undefined) user.betDisabled = false;
+<div id="users" class="tab">
 
-                const betStatusBadge = user.betDisabled 
-                    ? `<span class="px-2 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-[10px]">YASAKLI</span>`
-                    : `<span class="px-2 py-0.5 bg-green-950 text-green-400 border border-green-800 rounded text-[10px]">AKTİF</span>`;
+<h1>Kullanıcı Yönetimi</h1>
 
-                tbody.innerHTML += `
-                    <tr class="border-b border-gray-900 hover:bg-gray-900/50">
-                        <td class="p-3 font-bold text-white">${user.username}</td>
-                        <td class="p-3 text-yellow-500">${user.coins.toLocaleString()} 🪙</td>
-                        <td class="p-3 text-purple-400 font-bold">${user.spinRights} Hak</td>
-                        <td class="p-3">${betStatusBadge}</td>
-                        <td class="p-3 text-right space-x-1">
-                            <button onclick="toggleBetPermission('${user.username}')" class="px-2 py-1 ${user.betDisabled ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white rounded text-[10px] font-bold">
-                                ${user.betDisabled ? 'Bahis İzni Ver' : 'Bahsi Yasakla'}
-                            </button>
-                            <button onclick="adjustSpin('${user.username}', 1)" class="px-2 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded text-[10px] font-bold">+1 Çark</button>
-                            <button onclick="adjustSpin('${user.username}', -1)" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded text-[10px] font-bold">-1 Çark</button>
-                        </td>
-                    </tr>
-                `;
-            });
+<input
+type="text"
+id="searchUser"
+placeholder="Kullanıcı ara..."
+onkeyup="renderUsers()">
 
-            // LOGLARI OLUŞTUR
-            const betLogsContainer = document.getElementById('global-bet-logs');
-            const betHistory = JSON.parse(localStorage.getItem('nexus_bet_history')) || [];
-            if (betHistory.length === 0) {
-                betLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz oynanmış bahis yok.</p>`;
-            } else {
-                betLogsContainer.innerHTML = betHistory.map(log => `
-                    <div class="p-2 bg-gray-950 border border-gray-900 rounded-xl flex justify-between items-center text-[11px]">
-                        <div>
-                            <span class="text-gray-400">[${log.time}]</span> 
-                            <strong class="text-white">${log.user}</strong> ➡️ <span class="text-blue-400">${log.game}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Bet: ${log.bet}</span> | 
-                            <span class="${log.payout >= 0 ? 'text-green-400 font-bold' : 'text-red-400'}">${log.payout >= 0 ? '+' + log.payout : log.payout}</span>
-                        </div>
-                    </div>
-                `).join('');
-            }
+<table>
 
-            const wheelLogsContainer = document.getElementById('wheel-reward-logs');
-            const wheelHistory = JSON.parse(localStorage.getItem('nexus_wheel_history')) || [];
-            if (wheelHistory.length === 0) {
-                wheelLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz çark çeviren kullanıcı yok.</p>`;
-            } else {
-                wheelLogsContainer.innerHTML = wheelHistory.map(log => `
-                    <div class="p-2 bg-gray-950 border border-gray-900 rounded-xl flex justify-between items-center text-[11px]">
-                        <div>
-                            <span class="text-gray-400">[${log.time}]</span> 
-                            <strong class="text-white">${log.user}</strong> çark çevirdi.
-                        </div>
-                        <div class="text-purple-400 font-bold">🎁 Ödül: ${log.reward}</div>
-                    </div>
-                `).join('');
-            }
-        }
+<thead>
 
-        function toggleBetPermission(username) {
-            let uIdx = users.findIndex(u => u.username === username);
-            if (uIdx !== -1) {
-                users[uIdx].betDisabled = !users[uIdx].betDisabled;
-                localStorage.setItem('nexus_users', JSON.stringify(users));
-                renderAdminPanel();
-            }
-        }
+<tr>
 
-        function adjustSpin(username, amount) {
-            let uIdx = users.findIndex(u => u.username === username);
-            if (uIdx !== -1) {
-                if (users[uIdx].spinRights === undefined) users[uIdx].spinRights = 3;
-                users[uIdx].spinRights = Math.max(0, users[uIdx].spinRights + amount);
-                localStorage.setItem('nexus_users', JSON.stringify(users));
-                renderAdminPanel();
-            }
-        }
+<th>ID</th>
+<th>Kullanıcı</th>
+<th>Coin</th>
+<th>Çark</th>
+<th>Durum</th>
+<th>İşlem</th>
 
-        // Tetikleyici Başlatıcı
-        renderAdminPanel();
-    </script>
+</tr>
+
+</thead>
+
+<tbody id="userTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<div id="logs" class="tab">
+
+<h1>Loglar</h1>
+
+<div id="logList"></div>
+
+</div>
+
+</div>
+
+<script src="admin.js"></script>
+
 </body>
 </html>
