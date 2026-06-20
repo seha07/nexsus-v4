@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Nexus Entertainment Platform V4</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #081224; color: white; font-family: system-ui, sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen flex flex-col">
+        <header class="h-20 bg-[#162238] border-b border-slate-800 flex items-center justify-between px-8 shadow-xl">
+            <span class="font-black tracking-widest text-lg text-blue-400">⚡ NEXUS V4 ENTERPRISE</span>
+            <div class="flex items-center gap-4 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-amber-400 font-mono font-bold">
+                🪙 <span id="coin-txt">100.000</span> COIN
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 max-w-6xl mx-auto w-full space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-amber-400 font-bold mb-4 text-lg">🎰 SLOT CLASSIC</h3>
+                    <div class="flex gap-4 justify-center my-6">
+                        <div id="r1" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
+                        <div id="r2" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
+                        <div id="r3" class="bg-black px-6 py-4 rounded-xl text-4xl border border-slate-800">🍒</div>
+                    </div>
+                    <button onclick="spinSlot()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-sm text-white transition-all">ÇEVİR (100 COIN)</button>
+                    <p id="slot-msg" class="text-center text-xs mt-3 text-slate-400 font-bold h-4"></p>
+                </div>
+
+                <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-red-400 font-bold mb-4 text-lg">🚀 CRASH ROCKET</h3>
+                    <div class="h-28 bg-black rounded-xl border border-slate-800 flex flex-col items-center justify-center my-4">
+                        <span id="crash-num" class="text-4xl font-mono font-black text-emerald-400">1.00x</span>
+                    </div>
+                    <button onclick="startCrash()" id="crash-btn" class="w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all">ROKETİ BAŞLAT (200 COIN)</button>
+                </div>
+            </div>
+
+            <div class="bg-[#162238] border border-slate-800 rounded-2xl p-6 space-y-4">
+                <h3 class="text-slate-400 text-sm font-bold tracking-widest">⚙️ SİMÜLE YÖNETİM PANELİ (ADMIN)</h3>
+                <div class="w-full overflow-x-auto bg-slate-950 rounded-xl border border-slate-800">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 border-b border-slate-800 text-xs font-bold text-slate-400">
+                                <th class="p-4">ID</th>
+                                <th class="p-4">Kullanıcı</th>
+                                <th class="p-4">Rol</th>
+                                <th class="p-4">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-800/50">
+                                <td class="p-4 font-mono">#1</td>
+                                <td class="p-4 font-bold">Yapay Zeka Misafiri (Siz)</td>
+                                <td class="p-4 text-red-400 uppercase text-xs font-extrabold tracking-wider">ADMIN</td>
+                                <td class="p-4">
+                                    <button onclick="addAdminCoin()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold border border-slate-700 text-amber-400">+5000 COIN EKLE</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let coins = 100000;
+        const items = ['🍒', '🍋', '💎', '⭐', '7️⃣'];
+
+        function updateUI() {
+            document.getElementById('coin-txt').innerText = coins.toLocaleString();
+        }
+
+        function spinSlot() {
+            if (coins < 100) { alert("Yetersiz bakiye!"); return; }
+            coins -= 100;
+            updateUI();
+            document.getElementById('slot-msg').innerText = "Makaralar dönüyor...";
+            
+            setTimeout(() => {
+                const res1 = items[Math.floor(Math.random() * items.length)];
+                const res2 = items[Math.floor(Math.random() * items.length)];
+                const res3 = items[Math.floor(Math.random() * items.length)];
+                
+                document.getElementById('r1').innerText = res1;
+                document.getElementById('r2').innerText = res2;
+                document.getElementById('r3').innerText = res3;
+
+                if (res1 === res2 && res2 === res3) {
+                    coins += 1500;
+                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-emerald-400 font-bold";
+                    document.getElementById('slot-msg').innerText = "🎉 TEBRİKLER! 3lü Kombinasyon: +1500 Coin!";
+                } else if (res1 === res2 || res2 === res3 || res1 === res3) {
+                    coins += 200;
+                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-blue-400 font-bold";
+                    document.getElementById('slot-msg').innerText = "👍 Güzel! İkili Eşleşme: +200 Coin";
+                } else {
+                    document.getElementById('slot-msg').className = "text-center text-xs mt-3 text-red-400 font-bold";
+                    document.getElementById('slot-msg').innerText = "❌ Kazanç Yok. Tekrar Dene!";
+                }
+                updateUI();
+            }, 600);
+        }
+
+        let crashInterval;
+        function startCrash() {
+            if (coins < 200) { alert("Yetersiz bakiye!"); return; }
+            const btn = document.getElementById('crash-btn');
+            
+            if (btn.innerText.includes("NAKİT ÇIKIŞ")) {
+                clearInterval(crashInterval);
+                let currentMult = parseFloat(document.getElementById('crash-num').innerText);
+                let win = Math.floor(200 * currentMult);
+                coins += win;
+                alert(`🚀 Başarılı Nakit Çıkışı! ${currentMult}x katsayı ile +${win} Coin kazandınız!`);
+                btn.innerText = "ROKETİ BAŞLAT (200 COIN)";
+                btn.className = "w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all";
+                updateUI();
+                return;
+            }
+
+            coins -= 200;
+            updateUI();
+            btn.innerText = "NAKİT ÇIKIŞ YAP (CASHOUT)";
+            btn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm text-white transition-all";
+            
+            let current = 1.0;
+            let crashPoint = (1.0 + Math.random() * 3.5).toFixed(2);
+            
+            crashInterval = setInterval(() => {
+                current += 0.05;
+                document.getElementById('crash-num').innerText = current.toFixed(2) + "x";
+                document.getElementById('crash-num').className = "text-4xl font-mono font-black text-emerald-400";
+                
+                if (current >= crashPoint) {
+                    clearInterval(crashInterval);
+                    document.getElementById('crash-num').innerText = "💥 PATLADI @ " + crashPoint + "x";
+                    document.getElementById('crash-num').className = "text-2xl font-mono font-black text-red-500";
+                    btn.innerText = "ROKETİ BAŞLAT (200 COIN)";
+                    btn.className = "w-full py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-sm text-white transition-all";
+                }
+            }, 100);
+        }
+
+        function addAdminCoin() {
+            coins += 5000;
+            updateUI();
+        }
+    </script>
+</body>
+</html>
