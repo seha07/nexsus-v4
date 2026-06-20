@@ -3,165 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus - Admin Kontrol Merkezi</title>
+    <title>Nexus - Advanced Admin Control Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .nexus-card { background: #0b0f19; border: 1px solid #1e293b; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-950 text-gray-200 font-sans pb-12">
 
-    <header class="h-20 nexus-card border-b flex items-center justify-between px-8 bg-red-950/10">
+    <!-- HEADER -->
+    <header class="h-20 nexus-card border-b flex items-center justify-between px-8 mb-6">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-xl font-bold text-white">⚙️</div>
-            <span class="text-lg font-black tracking-widest text-red-400">NEXUS SÜPER YÖNETİM PANELİ</span>
+            <span class="text-xl">🛡️</span>
+            <div>
+                <h1 class="text-sm font-black tracking-wider text-white">NEXUS CONTROL CORE</h1>
+                <p class="text-[10px] text-gray-400 font-mono" id="admin-session-name">Giriş: -</p>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
-            <span id="admin-badge" class="px-3 py-1 bg-red-900 border border-red-700 rounded-xl text-xs font-bold text-white uppercase">Yetkili: -</span>
-            <button onclick="localStorage.removeItem('nexus_current_admin'); window.location.href='index.html';" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold">Güvenli Çıkış</button>
-        </div>
+        <button onclick="window.location.href='dashboard.html'" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold">Lobiye Dön</button>
     </header>
 
-    <div class="p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-7xl mx-auto px-6 space-y-6">
         
-        <!-- SOL / ORTA ALAN: KULLANICI MATRİSİ VE GÖREV EKLE/SİL -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <div class="nexus-card rounded-2xl p-6 shadow-xl">
-                <h3 class="text-gray-300 text-sm font-black tracking-wider uppercase mb-4">👤 SİSTEM OYUNCU LİSTESİ</h3>
-                <div class="w-full overflow-x-auto bg-gray-950 rounded-xl border border-gray-800">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="bg-gray-900 border-b border-gray-800 text-gray-400 font-bold uppercase tracking-wider">
-                                <th class="p-4">Kullanıcı</th>
-                                <th class="p-4">Şifre (Sadece Admin11)</th>
-                                <th class="p-4">Bakiye</th>
-                                <th class="p-4 text-right">Aksiyonlar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-rows"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- GÖREV YÖNETİM MERKEZİ (EKLEME VE SİLME) -->
-            <div class="nexus-card rounded-2xl p-6 shadow-xl">
-                <h3 class="text-green-400 text-sm font-black tracking-wider uppercase mb-3">📋 GÖREV YÖNETİM MATRİSİ</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    <div class="sm:col-span-2"><input type="text" id="t-txt" placeholder="Görev metni" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-xs text-white outline-none"></div>
-                    <div><input type="number" id="t-rwd" placeholder="Ödül Coin" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2 text-xs text-yellow-400 font-bold outline-none"></div>
-                </div>
-                <button onclick="addTask()" class="w-full py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl mb-4">YENİ GÖREV ENJEKTE ET</button>
-                
-                <div class="border-t border-gray-800 pt-3">
-                    <p class="text-[10px] text-gray-500 font-bold uppercase mb-2">Mevcut Aktif Görevleri Sil</p>
-                    <div id="admin-tasks-list" class="space-y-2"></div>
-                </div>
-            </div>
-
+        <!-- YETKİSİZ KULLANICI UYARISI (SADECE ADMIN22 İÇİN SÜS) -->
+        <div id="restriction-notice" class="hidden p-4 bg-yellow-950/40 border border-yellow-800 rounded-xl text-xs text-yellow-400">
+            ⚠️ <strong>Sınırlı Yetki Modu:</strong> `admin22` hesabıyla oturum açtınız. Gelişmiş kullanıcı modifikasyonları, kısıtlamalar ve log sistemleri yetkiniz dışındadır.
         </div>
 
-        <!-- SAĞ ALAN: ADMİN KİMLİK LOG KAYITLARI -->
-        <div class="nexus-card rounded-2xl p-6 shadow-xl flex flex-col justify-between">
-            <div class="space-y-4">
-                <div class="border-b border-gray-800 pb-2">
-                    <h3 class="text-red-400 text-sm font-black tracking-wider uppercase">🕒 SİSTEM AKIŞ LOGLARI</h3>
-                </div>
-                <div id="admin-logs" class="space-y-2 max-h-96 overflow-y-auto font-mono text-[11px] text-gray-400"></div>
+        <!-- KULLANICI YÖNETİM MATRİSİ (SADECE ADMIN11 GÖRÜR) -->
+        <div id="super-admin-section" class="nexus-card rounded-2xl p-6">
+            <h3 class="text-xs font-black text-blue-500 tracking-widest mb-4">👥 KULLANICI KONTROL & YETKİLENDİRME MERKEZİ</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead>
+                        <tr class="border-b border-gray-800 text-gray-400">
+                            <th class="p-3">Kullanıcı Adı</th>
+                            <th class="p-3">Bakiye</th>
+                            <th class="p-3">Çark Hakkı</th>
+                            <th class="p-3">Bahis Durumu</th>
+                            <th class="p-3 text-right">Hızlı Müdahale Eylemleri</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Dinamik doldurulacak -->
+                    </tbody>
+                </table>
             </div>
-            <!-- SADECE ADMIN11 İÇİN GEÇMİŞİ SİLME BUTONU -->
-            <button onclick="clearSystemLogs()" id="clear-log-btn" class="w-full mt-4 py-2 bg-gray-950 border border-red-900 text-red-400 text-xs font-bold rounded-lg hidden">Geçmiş Sistem Loglarını Kazı (Sil)</button>
+        </div>
+
+        <!-- LOG SİSTEMLERİ (SADECE ADMIN11 GÖRÜR) -->
+        <div id="logs-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Global Bahis Geçmişi -->
+            <div class="nexus-card rounded-2xl p-6">
+                <h3 class="text-xs font-black text-green-500 tracking-widest mb-4">📊 KULLANICI BAHİS GEÇMİŞİ LOGLARI</h3>
+                <div class="h-80 overflow-y-auto space-y-2 pr-2" id="global-bet-logs">
+                    <!-- Loglar -->
+                </div>
+            </div>
+
+            <!-- Çark Kazanç Geçmişi -->
+            <div class="nexus-card rounded-2xl p-6">
+                <h3 class="text-xs font-black text-purple-500 tracking-widest mb-4">🎡 ÇARK ÇEVİRİM ÖDÜL LOGLARI</h3>
+                <div class="h-80 overflow-y-auto space-y-2 pr-2" id="wheel-reward-logs">
+                    <!-- Loglar -->
+                </div>
+            </div>
         </div>
 
     </div>
 
     <script>
-        const activeAdmin = localStorage.getItem('nexus_current_admin');
-        if(!activeAdmin) window.location.href = 'index.html';
-
-        document.getElementById('admin-badge').innerText = "YETKİLİ: " + activeAdmin;
-
-        // Yetkilendirme Kuralları: Sadece admin11 log silme butonunu görebilir
-        if(activeAdmin === 'admin11') {
-            document.getElementById('clear-log-btn').classList.remove('hidden');
-        }
-
+        // Yönetici Sabit Hesap Doğrulaması & Güncellemesi
         let users = JSON.parse(localStorage.getItem('nexus_users')) || [];
-        let tasks = JSON.parse(localStorage.getItem('nexus_tasks')) || [];
-        let logs = JSON.parse(localStorage.getItem('nexus_logs')) || [];
+        
+        // admin11 Şifre Güncelleme (229812)
+        let a11 = users.find(u => u.username === 'admin11');
+        if(a11) { a11.password = '229812'; a11.role = 'superadmin'; } 
+        else { users.push({username: 'admin11', password: '229812', coins: 100000, role: 'superadmin', spinRights: 5, betDisabled: false}); }
 
+        // admin22 Kontrolü
+        let a22 = users.find(u => u.username === 'admin22');
+        if(a22) { a22.role = 'limitedadmin'; }
+        else { users.push({username: 'admin22', password: 'admin', coins: 50000, role: 'limitedadmin', spinRights: 0, betDisabled: false}); }
+
+        localStorage.setItem('nexus_users', JSON.stringify(users));
+
+        // Mevcut Giriş Yapan Admin Oturumu
+        const currentAdmin = localStorage.getItem('nexus_session');
+        const adminAccount = users.find(u => u.username === currentAdmin);
+
+        // Güvenlik & Yetki Kontrolü Duvarı
+        if (!adminAccount || (adminAccount.username !== 'admin11' && adminAccount.username !== 'admin22')) {
+            alert("Bu panele erişim yetkiniz yok!");
+            window.location.href = 'dashboard.html';
+        }
+
+        document.getElementById('admin-session-name').innerText = `Giriş: ${adminAccount.username} (${adminAccount.username === 'admin11' ? 'Tam Yetkili' : 'Sınırlı Yetki'})`;
+
+        // Arayüz Yetki Ayrıştırma İşlemi
+        if(adminAccount.username === 'admin22') {
+            document.getElementById('restriction-notice').classList.remove('hidden');
+            document.getElementById('super-admin-section').classList.add('hidden');
+            document.getElementById('logs-section').classList.add('hidden');
+        }
+
+        // Tabloyu ve Logları Listeleme Fonksiyonu
         function renderAdminPanel() {
-            localStorage.setItem('nexus_users', JSON.stringify(users));
-            localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
-            localStorage.setItem('nexus_logs', JSON.stringify(logs));
+            if(adminAccount.username === 'admin22') return; // admin22 ise aşağısını çalıştırma
 
-            // Kullanıcı Satırları
-            const tbody = document.getElementById('admin-rows');
-            tbody.innerHTML = users.map((u, idx) => `
-                <tr class="border-b border-gray-900">
-                    <td class="p-4 font-bold text-gray-200">${u.username}</td>
-                    <td class="p-4 font-mono text-gray-400">${activeAdmin === 'admin11' ? u.password : '•••••• (Yetki Yok)'}</td>
-                    <td class="p-4 font-mono text-yellow-400 font-bold">${u.coins.toLocaleString()} 🪙</td>
-                    <td class="p-4 text-right space-x-1">
-                        <button onclick="modCoins(${idx}, 10000)" class="px-2 py-1 bg-gray-900 text-green-400 border border-gray-800 text-[10px] rounded">+</button>
-                        <button onclick="modCoins(${idx}, -10000)" class="px-2 py-1 bg-gray-900 text-red-400 border border-gray-800 text-[10px] rounded">-</button>
-                        <button onclick="deleteUser(${idx})" class="px-2 py-1 bg-red-900/30 text-red-400 text-[10px] rounded">Sil</button>
-                    </td>
-                </tr>
-            `).join('');
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            
+            // Yenilenen veriyi çek
+            users = JSON.parse(localStorage.getItem('nexus_users')) || [];
 
-            // Görev Silme Listesi
-            document.getElementById('admin-tasks-list').innerHTML = tasks.map((t, idx) => `
-                <div class="bg-gray-950 p-2 rounded-lg border border-gray-800 flex justify-between items-center text-[11px]">
-                    <span class="text-gray-300">${t.text}</span>
-                    <button onclick="deleteTask(${idx})" class="text-red-400 font-bold hover:underline">Görevi Kaldır</button>
-                </div>
-            `).join('');
+            users.forEach(user => {
+                // Admin hesaplarının kendisini listede manipüle etmesini engellemek için filtre
+                if(user.username === 'admin11' || user.username === 'admin22') return;
 
-            // Loglar
-            document.getElementById('admin-logs').innerHTML = logs.map(l => `
-                <div class="pt-1 border-b border-gray-900/40"><span class="text-gray-600">[${l.time}]</span> <strong>${l.admin}</strong>: ${l.details}</div>
-            `).join('');
+                // Varsayılan eksik parametreleri ata
+                if(user.spinRights === undefined) user.spinRights = 3;
+                if(user.betDisabled === undefined) user.betDisabled = false;
+
+                const betStatusBadge = user.betDisabled 
+                    ? `<span class="px-2 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded text-[10px]">YASAKLI</span>`
+                    : `<span class="px-2 py-0.5 bg-green-950 text-green-400 border border-green-800 rounded text-[10px]">AKTİF</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-900 hover:bg-gray-900/50">
+                        <td class="p-3 font-bold text-white">${user.username}</td>
+                        <td class="p-3 text-yellow-500">${user.coins.toLocaleString()} 🪙</td>
+                        <td class="p-3 text-purple-400 font-bold">${user.spinRights} Hak</td>
+                        <td class="p-3">${betStatusBadge}</td>
+                        <td class="p-3 text-right space-x-1">
+                            <button onclick="toggleBetPermission('${user.username}')" class="px-2 py-1 ${user.betDisabled ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600'} text-white rounded text-[10px] font-bold">
+                                ${user.betDisabled ? 'Bahis İzni Ver' : 'Bahsi Yasakla'}
+                            </button>
+                            <button onclick="adjustSpin('${user.username}', 1)" class="px-2 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded text-[10px] font-bold">+1 Çark</button>
+                            <button onclick="adjustSpin('${user.username}', -1)" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded text-[10px] font-bold">-1 Çark</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // LOGLARI DOLDUR
+            // 1. Bahis Geçmişi Logları
+            const betLogsContainer = document.getElementById('global-bet-logs');
+            const betHistory = JSON.parse(localStorage.getItem('nexus_bet_history')) || [];
+            if(betHistory.length === 0) {
+                betLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz oynanmış bahis yok.</p>`;
+            } else {
+                betLogsContainer.innerHTML = betHistory.map(log => `
+                    <div class="p-2 bg-gray-950 border border-gray-900 rounded-xl flex justify-between items-center text-[11px]">
+                        <div>
+                            <span class="text-gray-400">[${log.time}]</span> 
+                            <strong class="text-white">${log.user}</strong> ➡️ <span class="text-blue-400">${log.game}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Bet: ${log.bet}</span> | 
+                            <span class="${log.payout >= 0 ? 'text-green-400 font-bold' : 'text-red-400'}">${log.payout >= 0 ? '+' + log.payout : log.payout}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // 2. Çark Ödül Logları
+            const wheelLogsContainer = document.getElementById('wheel-reward-logs');
+            const wheelHistory = JSON.parse(localStorage.getItem('nexus_wheel_history')) || [];
+            if(wheelHistory.length === 0) {
+                wheelLogsContainer.innerHTML = `<p class="text-gray-600 text-xs italic">Henüz çark çeviren kullanıcı yok.</p>`;
+            } else {
+                wheelLogsContainer.innerHTML = wheelHistory.map(log => `
+                    <div class="p-2 bg-gray-950 border border-gray-900 rounded-xl flex justify-between items-center text-[11px]">
+                        <div>
+                            <span class="text-gray-400">[${log.time}]</span> 
+                            <strong class="text-white">${log.user}</strong> çark çevirdi.
+                        </div>
+                        <div class="text-purple-400 font-bold">🎁 Ödül: ${log.reward}</div>
+                    </div>
+                `).join('');
+            }
         }
 
-        function writeLog(details) {
-            logs.unshift({ time: new Date().toLocaleTimeString(), admin: activeAdmin, details });
-            renderAdminPanel();
-        }
-
-        function modCoins(idx, val) {
-            users[idx].coins = Math.max(0, users[idx].coins + val);
-            writeLog(`${users[idx].username} hesabına ${val} değerinde bakiye müdahalesi yaptı.`);
-        }
-
-        function deleteUser(idx) {
-            let name = users[idx].username;
-            users.splice(idx, 1);
-            writeLog(`${name} isimli kullanıcı hesabını sistemden tamamen sildi.`);
-        }
-
-        function addTask() {
-            let txt = document.getElementById('t-txt').value.trim();
-            let rwd = parseInt(document.getElementById('t-rwd').value) || 0;
-            if(!txt || rwd <= 0) return;
-            tasks.push({ id: Date.now(), text: txt, reward: rwd });
-            writeLog(`Sisteme yeni görev entegre etti: "${txt}"`);
-            document.getElementById('t-txt').value = '';
-            document.getElementById('t-rwd').value = '';
-        }
-
-        function deleteTask(idx) {
-            let removed = tasks[idx].text;
-            tasks.splice(idx, 1);
-            writeLog(`"${removed}" görevini sistemden sildi.`);
-        }
-
-        function clearSystemLogs() {
-            if(activeAdmin !== 'admin11') { alert("Yetkiniz yok!"); return; }
-            if(confirm("Tüm geçmiş akış logları kazınsın mı?")) {
-                logs = [];
+        // Bahis Yetkisi Açma / Kapatma Motoru
+        function toggleBetPermission(username) {
+            let uIdx = users.findIndex(u => u.username === username);
+            if(uIdx !== -1) {
+                users[uIdx].betDisabled = !users[uIdx].betDisabled;
+                localStorage.setItem('nexus_users', JSON.stringify(users));
                 renderAdminPanel();
             }
         }
 
+        // Çark Hakkı Ekleme / Çıkarma Motoru
+        function adjustSpin(username, amount) {
+            let uIdx = users.findIndex(u => u.username === username);
+            if(uIdx !== -1) {
+                if(users[uIdx].spinRights === undefined) users[uIdx].spinRights = 3;
+                users[uIdx].spinRights = Math.max(0, users[uIdx].spinRights + amount);
+                localStorage.setItem('nexus_users', JSON.stringify(users));
+                renderAdminPanel();
+            }
+        }
+
+        // Paneli ilk çalıştırma
         renderAdminPanel();
     </script>
 </body>
