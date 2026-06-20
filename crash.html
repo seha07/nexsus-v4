@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Jet Crash</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="h-20 nexus-card border-b flex items-center justify-between px-8">
+        <button onclick="window.location.href='dashboard.html'" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold">⬅️ Lobiye Dön</button>
+        <div class="bg-gray-950 border border-gray-800 px-4 py-2 rounded-xl text-yellow-400 font-bold font-mono text-sm" id="crash-coins">0 🪙</div>
+    </header>
+
+    <div class="p-6 max-w-xl mx-auto w-full">
+        <div class="nexus-card rounded-2xl p-6">
+            <h3 class="text-red-500 font-black text-xs tracking-widest mb-4">✈️ JET AVIA-CRASH ENGINE v2</h3>
+            
+            <!-- UÇAK SİMÜLASYON ALANI -->
+            <div class="h-48 bg-gray-950 border border-gray-800 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center mb-6">
+                <span id="mult-text" class="text-5xl font-mono font-black text-white z-10">1.00x</span>
+                <!-- UÇAK ICONU -->
+                <div id="airplane" class="absolute left-6 bottom-6 text-3xl transition-all duration-100 ease-linear z-0">✈️</div>
+            </div>
+
+            <button onclick="actionCrash()" id="action-btn" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl text-sm">UÇAĞI KALDIR (1500 COIN)</button>
+        </div>
+    </div>
+
+    <script>
+        const session = localStorage.getItem('nexus_session');
+        let users = JSON.parse(localStorage.getItem('nexus_users'));
+        let curr = users.find(u => u.username === session);
+
+        let running = false;
+        let loop = null;
+        let currentM = 1.0;
+
+        document.getElementById('crash-coins').innerText = curr.coins.toLocaleString() + " 🪙";
+
+        function actionCrash() {
+            const btn = document.getElementById('action-btn');
+            const plane = document.getElementById('airplane');
+
+            if(running) {
+                // Cashout Noktası
+                clearInterval(loop);
+                running = false;
+                let prize = Math.floor(1500 * currentM);
+                curr.coins += prize;
+                alert(`✈️ Nakit Çıkışı Başarılı! +${prize} Coin bakiyenize eklendi.`);
+                resetEngine();
+                return;
+            }
+
+            if(curr.coins < 1500) { alert("Yetersiz Bakiye!"); return; }
+            curr.coins -= 1500;
+            running = true;
+            currentM = 1.0;
+            let explosionPoint = (1.0 + Math.random() * 5.0).toFixed(2);
+            
+            btn.innerText = "NAKİT ÇIKIŞI YAP (CASHOUT)";
+            btn.className = "w-full py-4 bg-green-600 text-white font-black rounded-xl text-sm";
+
+            loop = setInterval(() => {
+                currentM += 0.04;
+                document.getElementById('mult-text').innerText = currentM.toFixed(2) + "x";
+
+                // Uçağı dinamik olarak sağa ve yukarı kaydır
+                let pos = Math.min(70, Math.floor((currentM - 1) * 20));
+                plane.style.left = (24 + pos) + "%";
+                plane.style.bottom = (24 + pos) + "%";
+
+                if(currentM >= explosionPoint) {
+                    clearInterval(loop);
+                    running = false;
+                    document.getElementById('mult-text').innerText = "💥 PATLADI @ " + explosionPoint + "x";
+                    resetEngine();
+                }
+            }, 80);
+        }
+
+        function resetEngine() {
+            const btn = document.getElementById('action-btn');
+            const plane = document.getElementById('airplane');
+            if(!running) {
+                setTimeout(() => {
+                    btn.innerText = "UÇAĞI KALDIR (1500 COIN)";
+                    btn.className = "w-full py-4 bg-red-600 text-white font-black rounded-xl text-sm";
+                    plane.style.left = "24px";
+                    plane.style.bottom = "24px";
+                    document.getElementById('mult-text').innerText = "1.00x";
+                }, 1500);
+            }
+            let idx = users.findIndex(u => u.username === curr.username);
+            users[idx] = curr;
+            localStorage.setItem('nexus_users', JSON.stringify(users));
+            document.getElementById('crash-coins').innerText = curr.coins.toLocaleString() + " 🪙";
+        }
+    </script>
+</body>
+</html>
